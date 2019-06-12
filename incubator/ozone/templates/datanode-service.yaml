@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: apps/v1
-kind: DaemonSet
+apiVersion: v1
+kind: Service
 metadata:
   name: {{ include "ozone.fullname" . }}-datanode
   labels:
@@ -25,38 +25,11 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: datanode
 spec:
+  ports:
+  - port: 9882
+    name: ui
+  clusterIP: None
   selector:
-    matchLabels:
-      app.kubernetes.io/name: {{ include "ozone.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: datanode
-  template:
-    metadata:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9882"
-        prometheus.io/path: /prom
-      labels:
-        app.kubernetes.io/name: {{ include "ozone.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/component: datanode
-    spec:
-      containers:
-      - name: datanode
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        args:
-        - ozone
-        - datanode
-        ports:
-        - containerPort: 9870
-          name: rpc
-        envFrom:
-        - configMapRef:
-            name: {{ include "ozone.fullname" . }}-config
-        volumeMounts:
-        - name: data
-          mountPath: /data
-      initContainers: []
-      volumes:
-      - name: data
-        emptyDir: {}
+    app.kubernetes.io/name: {{ include "ozone.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: datanode
